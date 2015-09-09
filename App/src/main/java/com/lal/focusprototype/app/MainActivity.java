@@ -8,16 +8,21 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 
 import com.lal.focusprototype.app.views.CardStackView;
 import com.lal.focusprototype.app.views.FeedItemView;
 
+import org.apache.commons.lang3.StringUtils;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity {
+    private static final String TAG = "MainActivity";
     @InjectView(R.id.mCardStack)
     CardStackView mCardStack;
 
@@ -60,7 +65,10 @@ public class MainActivity extends Activity {
             @Override
             public void onCancelled(View beingDragged) {
                 FeedItemView item = (FeedItemView)beingDragged;
-                item.onCancelled(beingDragged);
+                if (item != null)
+                    item.onCancelled(beingDragged);
+
+                Log.d(TAG, "onCancelled, maybe I can use this to add view pager");
             }
 
             @Override

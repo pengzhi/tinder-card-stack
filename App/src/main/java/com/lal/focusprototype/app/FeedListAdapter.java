@@ -61,4 +61,5 @@ public class FeedListAdapter extends BaseAdapter {
 
         return personItemView;
     }
+
 }

@@ -61,6 +61,7 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
 
             id.setText(mFeedItem.toString());
         }
+
     }
 
     public FeedItem getFeedItem() {
@@ -74,6 +75,7 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
     }
 
     void setPicture(Drawable drawable) {
+        picture.setScaleType(ImageView.ScaleType.FIT_XY);
         picture.setImageDrawable(drawable);
     }
 

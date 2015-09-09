@@ -2,16 +2,17 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical" android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_width="300dp"
+    android:layout_height="300dp"
     android:background="@drawable/gray_border">
 
     <ImageView
         android:id="@+id/picture"
         android:src="@drawable/blank"
-        android:scaleType="centerCrop"
-        android:layout_width="350dp"
-        android:layout_height="300dp" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
     <TextView
         android:id="@+id/id_textView"
         tools:text="3"
@@ -19,6 +20,16 @@
         android:layout_width="wrap_content"
         android:textSize="60dp"
         android:layout_height="wrap_content" android:textAppearance="?android:textAppearanceLarge"/>
+
+   <com.lal.focusprototype.app.VerticalViewPager
+        android:id="@+id/verticalviewpager"
+        android:layout_width="299dp"
+        android:layout_height="299dp"/>
+
+    <!--<com.lal.focusprototype.app.VerticalViewPager2
+        android:id="@+id/verticalviewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>-->
 
 
     <TextView

@@ -2,8 +2,19 @@ package com.lal.focusprototype.app.views;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +22,14 @@ import android.view.animation.LinearInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.lal.focusprototype.app.R;
+import com.lal.focusprototype.app.VerticalViewPager;
+import com.lal.focusprototype.app.VerticalViewPager2;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorListenerAdapter;
-import com.nineoldandroids.animonation.AnimatorSet;
+import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.ValueAnimator;
 
@@ -23,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+
 
 /**
  * Created by diallo on 14/04/14.
@@ -34,6 +50,18 @@ import java.util.List;
  */
 public class CardStackView extends RelativeLayout {
 
+    private static final float MIN_SCALE = 0.75f;
+    private static final float MIN_ALPHA = 0.75f;
+
+    private static final String TAG = "CardStackView";
+    private boolean mMovingVerticallyMore;
+    private ArrayList<Boolean> mMovingVertically = new ArrayList<>();
+    int verticalMoreCount = 0;
+    int verticalLessCount = 0;
+    // private VerticalViewPager verticalViewPager;
+
+    private Handler handler;
+
     public interface CardStackListener{
         void onUpdateProgress(boolean positif, float percent, View view);
 
@@ -43,7 +71,7 @@ public class CardStackView extends RelativeLayout {
     }
 
     private static int STACK_SIZE = 4;
-    private static int MAX_ANGLE_DEGREE = 20;
+    private static int MAX_ANGLE_DEGREE = -20;//20
     private BaseAdapter mAdapter;
     private int mCurrentPosition;
     private int mMinDragDistance;
@@ -82,8 +110,8 @@ public class CardStackView extends RelativeLayout {
     private void setup() {
 
         Resources r = getContext().getResources();
-        mMinDragDistance = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, r.getDisplayMetrics());
-        mMinAcceptDistance = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, r.getDisplayMetrics());
+        mMinDragDistance = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, r.getDisplayMetrics());
+        mMinAcceptDistance = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, r.getDisplayMetrics());
 
         if (isInEditMode()) {
             mAdapter = new MockListAdapter(getContext());
@@ -100,6 +128,17 @@ public class CardStackView extends RelativeLayout {
         mCurrentPosition = 0;
 
         initializeStack();
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        //Log.d(TAG, "intercepted?? mCurrentPosition: " + mCurrentPosition + " ev: " + ev.getAction() + " getChildCount(): " + getChildCount());
+
+        View card = mCards.getFirst();
+
+        mMyTouchListener.onTouch(card, ev);
+        //card.dispatchTouchEvent(ev);
+        return super.onInterceptTouchEvent(ev);
     }
 
     private void initializeStack() {
@@ -119,10 +158,11 @@ public class CardStackView extends RelativeLayout {
 
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
             params.addRule(RelativeLayout.CENTER_IN_PARENT);
-
             addView(card, 0, params);
 
             mMyTouchListener = new MyOnTouchListener();
+
+            initiateViewPager(card);
         }
 
         mCurrentPosition += position;
@@ -133,6 +173,7 @@ public class CardStackView extends RelativeLayout {
         if (mBeingDragged != null){
             mXDelta = (int) mBeingDragged.getTranslationX();
             mYDelta = (int) mBeingDragged.getTranslationY();
+
         }
 
         int index = 0;
@@ -174,7 +215,6 @@ public class CardStackView extends RelativeLayout {
         return card == mCards.peek();
     }
 
-
     private boolean canAcceptChoice() {
         return Math.abs(mXDelta) > mMinAcceptDistance;
     }
@@ -196,6 +236,7 @@ public class CardStackView extends RelativeLayout {
         }
 
         float zoomFactor = 0;
+
         if (mBeingDragged != null){
             float interpolation = 0;
             float distance = (float) Math.sqrt(mXDelta*mXDelta + mYDelta*mYDelta);
@@ -219,7 +260,6 @@ public class CardStackView extends RelativeLayout {
         view.setRotation(0);
         view.setScaleX(1 - scale);
         view.setScaleY(1 - scale);
-
 
         return;
     }
@@ -271,15 +311,20 @@ public class CardStackView extends RelativeLayout {
             int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 300, r.getDisplayMetrics());
 
             LayoutParams params = new LayoutParams(px, px);
-            //view.setLayoutParams(params);
-
+            view.setLayoutParams(params);
             return view;
         }
     }
 
     private class MyOnTouchListener implements OnTouchListener {
+
         @Override
         public boolean onTouch(final View view, MotionEvent event) {
+
+            VerticalViewPager pager = (VerticalViewPager) view.findViewById( R.id.verticalviewpager );
+            //pager.setPagingEnabled( mBeingDragged == null );
+
+
             if (!isTopCard(view)){
                 return false;
             }
@@ -291,12 +336,14 @@ public class CardStackView extends RelativeLayout {
             switch (action & MotionEvent.ACTION_MASK) {
 
                 case MotionEvent.ACTION_DOWN: {
+
                     mXStart = X;
                     mYStart = Y;
 
                     break;
                 }
                 case MotionEvent.ACTION_UP:
+
                     if (mBeingDragged == null) {
                         return false;
                     }
@@ -309,8 +356,7 @@ public class CardStackView extends RelativeLayout {
                         ObjectAnimator yTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationY", 0);
                         ObjectAnimator xTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationX", 0);
                         set.playTogether(
-                                xTranslation,
-                                yTranslation
+                            xTranslation
                         );
 
                         set.setDuration(100).start();
@@ -324,6 +370,9 @@ public class CardStackView extends RelativeLayout {
                                 mYDelta = 0;
                                 mXStart = 0;
                                 mYStart = 0;
+                                verticalMoreCount = 0;
+                                verticalLessCount = 0;
+                                mMovingVertically.clear();
                                 requestLayout();
 
                                 if (mCardStackListener != null){
@@ -386,24 +435,61 @@ public class CardStackView extends RelativeLayout {
                                     parent.addView(view, 0);
                                 }
 
+
                                 last.setScaleX(1);
                                 last.setScaleY(1);
                                 setTranslationY(0);
                                 setTranslationX(0);
                                 requestLayout();
+
+                                VerticalViewPager viewpager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
+                                // TODO: How do I refresh/add page to viewpager?
+                                // in Adapter:
+                                //public int getItemPosition(Object object) {
+                                //    return POSITION_NONE;
+                                //};
+
                             }
                         });
                         animation.start();
+
+                        verticalMoreCount = 0;
+                        verticalLessCount = 0;
+                        mMovingVertically.clear();
                     }
 
                     break;
                 case MotionEvent.ACTION_MOVE:
 
+                    int mDraggedY = Math.abs(Y - mYStart);
+                    int mDraggedX = Math.abs(X - mXStart);
+
+                    //Log.d(TAG, "Moving vertically more: " + (mDraggedY > mDraggedX) );
+                    mMovingVertically.add((mDraggedY > mDraggedX));
+
+                    for ( Boolean mv : mMovingVertically ){
+                       if (mv)
+                           verticalMoreCount++;
+                        else
+                           verticalLessCount++;
+                    }
+// Log.d(TAG, "mBeingDragged != null && verticalMoreCount > verticalLessCount): " + mBeingDragged + "  " + verticalMoreCount + " " + verticalLessCount);
+                    if ( mBeingDragged != null && verticalMoreCount > verticalLessCount){
+
+// Log.d(TAG, "mBeingDragged != null && verticalMoreCount > verticalLessCount)");
+                        pager.setPagingEnabled(true);
+                        // mBeingDragged = null;
+                        return false;
+                    } else {
+
+                        pager.setPagingEnabled(false);
+                    }
+
                     boolean choiceBoolean = getStackChoice();
                     float progress = getStackProgress();
 
                     view.setTranslationX(X - mXStart);
-                    view.setTranslationY(Y - mYStart);
+                    //view.setTranslationY(Y - mYStart);
 
                     mXDelta = X - mXStart;
                     mYDelta = Y - mYStart;
@@ -416,6 +502,7 @@ public class CardStackView extends RelativeLayout {
                     }
 
                     break;
+
             }
             return true;
         }
@@ -440,7 +527,7 @@ public class CardStackView extends RelativeLayout {
 
     private boolean getStackChoice() {
         boolean choiceBoolean = false;
-        if (mXDelta > 0){
+        if (mXDelta > 0){ // mXDelta > 0
             choiceBoolean = true;
         }
         return choiceBoolean;
@@ -451,5 +538,139 @@ public class CardStackView extends RelativeLayout {
         float progress = Math.min(Math.abs(mXDelta) / ((float)mMinAcceptDistance*5), 1);
         progress = interpolator.getInterpolation(progress);
         return progress;
+    }
+
+    public static class DummyAdapter extends FragmentStatePagerAdapter{
+
+        public DummyAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+Log.d(TAG, "getItem() position:" + position);
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            return PlaceholderFragment.newInstance(position + 1);
+        }
+
+        @Override
+        public int getCount() {
+            // Show 3 total pages.
+            return 3;
+        }
+
+//        @Override
+//        public int getItemPosition(Object object) {
+//            return POSITION_NONE;
+//        }
+    }
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+
+        private static final String TAG = "PlaceholderFragment";
+
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_layout, container, false);
+            TextView textView = (TextView) rootView.findViewById(R.id.textview);
+            textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+Log.d(TAG, "onCreateView called textView.getText(): " + textView.getText() );
+            return rootView;
+        }
+
+    }
+
+    public static class CardStackAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return 0;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            return null;
+        }
+    }
+
+    private void initiateViewPager(View view){
+
+        VerticalViewPager verticalViewPager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
+
+        verticalViewPager.setOffscreenPageLimit(5); // very important to set this, otherwise fragment will show the first time and disappear later
+        verticalViewPager.setAdapter(new DummyAdapter(((FragmentActivity) getContext()).getSupportFragmentManager()));
+        verticalViewPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.pagemargin));
+        //verticalViewPager.setPageMarginDrawable(new ColorDrawable(getResources().getColor(android.R.color.holo_green_dark)));
+        verticalViewPager.setPageTransformer(true, new ViewPager.PageTransformer() {
+            @Override
+            public void transformPage(View view, float position) {
+
+                int pageWidth = view.getWidth();
+                int pageHeight = view.getHeight();
+
+                if (position < -1) { // [-Infinity,-1)
+                    // This page is way off-screen to the left.
+                    view.setAlpha(0);
+
+                } else if (position <= 1) { // [-1,1]
+                    // Modify the default slide transition to shrink the page as well
+                    float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
+                    float vertMargin = pageHeight * (1 - scaleFactor) / 2;
+                    float horzMargin = pageWidth * (1 - scaleFactor) / 2;
+                    if (position < 0) {
+                        view.setTranslationY(vertMargin - horzMargin / 2);
+                    } else {
+                        view.setTranslationY(-vertMargin + horzMargin / 2);
+                    }
+
+                    // Scale the page down (between MIN_SCALE and 1)
+                    //view.setScaleX(scaleFactor);
+                    //view.setScaleY(scaleFactor);
+
+                    // Fade the page relative to its size.
+                    view.setAlpha(MIN_ALPHA +
+                            (scaleFactor - MIN_SCALE) /
+                                    (1 - MIN_SCALE) * (1 - MIN_ALPHA));
+
+                } else { // (1,+Infinity]
+                    // This page is way off-screen to the right.
+                    view.setAlpha(0);
+                }
+            }
+        });
+
     }
 }
