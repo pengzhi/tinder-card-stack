@@ -21,9 +21,11 @@ import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.lal.focusprototype.app.CirclePageIndicator;
 import com.lal.focusprototype.app.R;
 import com.lal.focusprototype.app.VerticalViewPager;
 import com.lal.focusprototype.app.VerticalViewPager2;
@@ -132,12 +134,12 @@ public class CardStackView extends RelativeLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        //Log.d(TAG, "intercepted?? mCurrentPosition: " + mCurrentPosition + " ev: " + ev.getAction() + " getChildCount(): " + getChildCount());
 
         View card = mCards.getFirst();
 
+        // this is how I pass the motion events to the listener registered on each card
         mMyTouchListener.onTouch(card, ev);
-        //card.dispatchTouchEvent(ev);
+
         return super.onInterceptTouchEvent(ev);
     }
 
@@ -442,13 +444,6 @@ public class CardStackView extends RelativeLayout {
                                 setTranslationX(0);
                                 requestLayout();
 
-                                VerticalViewPager viewpager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
-                                // TODO: How do I refresh/add page to viewpager?
-                                // in Adapter:
-                                //public int getItemPosition(Object object) {
-                                //    return POSITION_NONE;
-                                //};
-
                             }
                         });
                         animation.start();
@@ -548,7 +543,6 @@ public class CardStackView extends RelativeLayout {
 
         @Override
         public Fragment getItem(int position) {
-Log.d(TAG, "getItem() position:" + position);
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             return PlaceholderFragment.newInstance(position + 1);
@@ -597,7 +591,6 @@ Log.d(TAG, "getItem() position:" + position);
             View rootView = inflater.inflate(R.layout.fragment_layout, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.textview);
             textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-Log.d(TAG, "onCreateView called textView.getText(): " + textView.getText() );
             return rootView;
         }
 
@@ -671,6 +664,10 @@ Log.d(TAG, "onCreateView called textView.getText(): " + textView.getText() );
                 }
             }
         });
+
+        CirclePageIndicator titleIndicator = (CirclePageIndicator) view.findViewById(R.id.verticalviewpager_indicator);
+        titleIndicator.setOrientation(LinearLayout.VERTICAL);
+        titleIndicator.setViewPager( verticalViewPager );
 
     }
 }

@@ -26,11 +26,13 @@
         android:layout_width="299dp"
         android:layout_height="299dp"/>
 
-    <!--<com.lal.focusprototype.app.VerticalViewPager2
-        android:id="@+id/verticalviewpager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>-->
-
+    <com.lal.focusprototype.app.CirclePageIndicator
+        android:id="@+id/verticalviewpager_indicator"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:padding="10dp"
+        />
 
     <TextView
         tools:alpha="1"
