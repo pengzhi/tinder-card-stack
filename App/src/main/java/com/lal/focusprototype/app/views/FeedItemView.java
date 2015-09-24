@@ -57,7 +57,7 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
                     "content_card_x_0" + mFeedItem.getId(),
                     "drawable", getContext().getPackageName());
 
-            loadPicture(resource);
+            // loadPicture(resource);
 
             id.setText(mFeedItem.toString());
         }

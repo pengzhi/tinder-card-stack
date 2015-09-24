@@ -2,17 +2,14 @@ package com.lal.focusprototype.app.views;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -28,7 +25,6 @@ import android.widget.TextView;
 import com.lal.focusprototype.app.CirclePageIndicator;
 import com.lal.focusprototype.app.R;
 import com.lal.focusprototype.app.VerticalViewPager;
-import com.lal.focusprototype.app.VerticalViewPager2;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorListenerAdapter;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -39,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 
 /**
@@ -627,6 +622,8 @@ public class CardStackView extends RelativeLayout {
         verticalViewPager.setAdapter(new DummyAdapter(((FragmentActivity) getContext()).getSupportFragmentManager()));
         verticalViewPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.pagemargin));
         //verticalViewPager.setPageMarginDrawable(new ColorDrawable(getResources().getColor(android.R.color.holo_green_dark)));
+
+
         verticalViewPager.setPageTransformer(true, new ViewPager.PageTransformer() {
             @Override
             public void transformPage(View view, float position) {
@@ -636,18 +633,20 @@ public class CardStackView extends RelativeLayout {
 
                 if (position < -1) { // [-Infinity,-1)
                     // This page is way off-screen to the left.
-                    view.setAlpha(0);
+                    //view.setAlpha(0);
 
                 } else if (position <= 1) { // [-1,1]
                     // Modify the default slide transition to shrink the page as well
                     float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
                     float vertMargin = pageHeight * (1 - scaleFactor) / 2;
                     float horzMargin = pageWidth * (1 - scaleFactor) / 2;
-                    if (position < 0) {
-                        view.setTranslationY(vertMargin - horzMargin / 2);
-                    } else {
-                        view.setTranslationY(-vertMargin + horzMargin / 2);
-                    }
+
+                    // setTranslationY was causing the weird angle overflow view
+                    //if (position < 0) {
+                        //view.setTranslationY(vertMargin - horzMargin / 2);
+                    //} else {
+                        //view.setTranslationY(-vertMargin + horzMargin / 2);
+                    //}
 
                     // Scale the page down (between MIN_SCALE and 1)
                     //view.setScaleX(scaleFactor);
@@ -660,7 +659,7 @@ public class CardStackView extends RelativeLayout {
 
                 } else { // (1,+Infinity]
                     // This page is way off-screen to the right.
-                    view.setAlpha(0);
+                    //view.setAlpha(0);
                 }
             }
         });
