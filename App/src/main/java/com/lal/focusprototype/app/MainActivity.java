@@ -71,6 +71,7 @@ public class MainActivity extends FragmentActivity {
                 if (item != null)
                     item.onCancelled(beingDragged);
 
+                // Dispatch cancel event to card that is being dragged == top card
                 long downTime = SystemClock.uptimeMillis();
                 long eventTime = SystemClock.uptimeMillis() + 100;
                 float x = 0.0f;
@@ -84,11 +85,8 @@ public class MainActivity extends FragmentActivity {
                         y,
                         metaState
                 );
-
-// Dispatch touch event to view
                 if (beingDragged!=null)
                     beingDragged.dispatchTouchEvent(motionEvent);
-                Log.d(TAG, "onCancelled, maybe I can use this to add view pager");
             }
 
             @Override

@@ -12,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lal.focusprototype.app.CirclePageIndicator;
 import com.lal.focusprototype.app.R;
@@ -59,6 +61,7 @@ public class CardStackView extends RelativeLayout {
     // private VerticalViewPager verticalViewPager;
 
     private Handler handler;
+    private GestureDetector gestureDetector;
 
     public interface CardStackListener{
         void onUpdateProgress(boolean positif, float percent, View view);
@@ -124,6 +127,8 @@ public class CardStackView extends RelativeLayout {
         mCards.clear();
         removeAllViews();
         mCurrentPosition = 0;
+
+        gestureDetector = new GestureDetector(getContext(), new SingleTapUp());
 
         initializeStack();
     }
@@ -193,7 +198,6 @@ public class CardStackView extends RelativeLayout {
                     index++;
                     continue;
                 }
-
                 scaleAndTranslate(1, card);
             } else {
                 scaleAndTranslate(index, card);
@@ -227,7 +231,6 @@ public class CardStackView extends RelativeLayout {
             }
             float progress = Math.min(Math.abs(mXDelta) / ((float)mMinAcceptDistance*5), 1);
             float angleDegree = MAX_ANGLE_DEGREE * interpolator.getInterpolation(progress);
-
             view.setRotation(sign*angleDegree);
 
             return;
@@ -319,188 +322,195 @@ public class CardStackView extends RelativeLayout {
         @Override
         public boolean onTouch(final View view, MotionEvent event) {
 
-            VerticalViewPager pager = (VerticalViewPager) view.findViewById( R.id.verticalviewpager );
+            VerticalViewPager pager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
 
-            if (!isTopCard(view)){
+            if (!isTopCard(view)) {
                 return false;
             }
 
-            final int X = (int) event.getRawX();
-            final int Y = (int) event.getRawY();
-            final int action = event.getAction();
+            if (gestureDetector.onTouchEvent(event)) {
+                // single tap
+                Log.d(TAG, "single tap");
+                Toast.makeText(getContext(),"single tap detected", Toast.LENGTH_SHORT).show();
+                return true;
+            } else {
 
-            switch (action & MotionEvent.ACTION_MASK) {
+                final int X = (int) event.getRawX();
+                final int Y = (int) event.getRawY();
+                final int action = event.getAction();
 
-                case MotionEvent.ACTION_DOWN: {
+                switch (action & MotionEvent.ACTION_MASK) {
 
-                    mXStart = X;
-                    mYStart = Y;
+                    case MotionEvent.ACTION_DOWN: {
 
-                    break;
-                }
-                case MotionEvent.ACTION_UP:
+                        mXStart = X;
+                        mYStart = Y;
 
-                    if (mBeingDragged == null) {
-                        return false;
+                        break;
                     }
+                    case MotionEvent.ACTION_UP:
 
-                    if (!canAcceptChoice()){
-                        requestLayout();
+                        if (mBeingDragged == null) {
+                            return false;
+                        }
+                        if (!canAcceptChoice()) {
 
-                        AnimatorSet set = new AnimatorSet();
+                            requestLayout();
 
-                        ObjectAnimator yTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationY", 0);
-                        ObjectAnimator xTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationX", 0);
-                        set.playTogether(
-                            xTranslation
-                        );
+                            AnimatorSet set = new AnimatorSet();
 
-                        set.setDuration(100).start();
-                        set.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
+                            ObjectAnimator yTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationY", 0);
+                            ObjectAnimator xTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationX", 0);
+                            set.playTogether(
+                                    xTranslation
+                            );
 
-                                View finalView = mBeingDragged;
-                                mBeingDragged = null;
-                                mXDelta = 0;
-                                mYDelta = 0;
-                                mXStart = 0;
-                                mYStart = 0;
-                                verticalMoreCount = 0;
-                                verticalLessCount = 0;
-                                mMovingVertically.clear();
-                                requestLayout();
+                            set.setDuration(100).start();
+                            set.addListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
 
-                                if (mCardStackListener != null){
-                                    mCardStackListener.onCancelled(finalView);
+                                    View finalView = mBeingDragged;
+                                    mBeingDragged = null;
+                                    mXDelta = 0;
+                                    mYDelta = 0;
+                                    mXStart = 0;
+                                    mYStart = 0;
+                                    verticalMoreCount = 0;
+                                    verticalLessCount = 0;
+                                    mMovingVertically.clear();
+                                    requestLayout();
+
+                                    if (mCardStackListener != null) {
+                                        mCardStackListener.onCancelled(finalView);
+                                    }
                                 }
+                            });
+
+                            ValueAnimator.AnimatorUpdateListener onUpdate = new ValueAnimator.AnimatorUpdateListener() {
+                                @Override
+                                public void onAnimationUpdate(ValueAnimator animation) {
+                                    mXDelta = (int) view.getTranslationX();
+                                    mYDelta = (int) view.getTranslationY();
+                                    requestLayout();
+                                }
+                            };
+
+                            yTranslation.addUpdateListener(onUpdate);
+                            xTranslation.addUpdateListener(onUpdate);
+
+                            set.start();
+
+                        } else {
+
+                            final View last = mCards.poll();
+
+                            View recycled = getRecycledOrNew();
+                            if (recycled != null) {
+                                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+                                params.addRule(RelativeLayout.CENTER_IN_PARENT);
+
+                                mCards.offer(recycled);
+                                addView(recycled, 0, params);
                             }
-                        });
 
-                        ValueAnimator.AnimatorUpdateListener onUpdate = new ValueAnimator.AnimatorUpdateListener() {
-                            @Override
-                            public void onAnimationUpdate(ValueAnimator animation) {
-                                mXDelta = (int) view.getTranslationX();
-                                mYDelta = (int) view.getTranslationY();
-                                requestLayout();
-                            }
-                        };
+                            int sign = mXDelta > 0 ? +1 : -1;
+                            final boolean finalChoice = mXDelta > 0;
 
-                        yTranslation.addUpdateListener(onUpdate);
-                        xTranslation.addUpdateListener(onUpdate);
+                            mBeingDragged = null;
+                            mXDelta = 0;
+                            mYDelta = 0;
+                            mXStart = 0;
+                            mYStart = 0;
 
-                        set.start();
+                            ObjectAnimator animation = ObjectAnimator.ofFloat(last, "translationX", sign * 1000)
+                                    .setDuration(300);
+                            animation.addListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
 
-                    } else {
+                                    if (mCardStackListener != null) {
+                                        boolean choice = finalChoice;
+                                        mCardStackListener.onChoiceMade(choice, last);
+                                    }
 
-                        final View last = mCards.poll();
+                                    recycleView(last);
 
-                        View recycled = getRecycledOrNew();
-                        if (recycled != null){
-                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                            params.addRule(RelativeLayout.CENTER_IN_PARENT);
+                                    final ViewGroup parent = (ViewGroup) view.getParent();
+                                    if (null != parent) {
+                                        parent.removeView(view);
+                                        parent.addView(view, 0);
+                                    }
 
-                            mCards.offer(recycled);
-                            addView(recycled, 0, params);
+                                    last.setScaleX(1);
+                                    last.setScaleY(1);
+                                    setTranslationY(0);
+                                    setTranslationX(0);
+                                    requestLayout();
+
+                                }
+                            });
+                            animation.start();
+
+                            verticalMoreCount = 0;
+                            verticalLessCount = 0;
+                            mMovingVertically.clear();
                         }
 
-                        int sign = mXDelta > 0 ? +1 : -1;
-                        final boolean finalChoice = mXDelta > 0;
+                        break;
 
-                        mBeingDragged= null;
+                    case MotionEvent.ACTION_MOVE:
+
+                        int mDraggedY = Math.abs(Y - mYStart);
+                        int mDraggedX = Math.abs(X - mXStart);
+
+                        //Log.d(TAG, "Moving vertically more: " + (mDraggedY > mDraggedX) );
+                        mMovingVertically.add((mDraggedY > mDraggedX));
+
+                        for (Boolean mv : mMovingVertically) {
+                            if (mv)
+                                verticalMoreCount++;
+                            else
+                                verticalLessCount++;
+                        }
+
+                        // Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (mBeingDragged != null )+ "  " + verticalMoreCount + " " + verticalLessCount);
+                        if (mBeingDragged != null && verticalMoreCount > verticalLessCount) {
+                            pager.setPagingEnabled(true);
+                            return true;
+                        } else {
+                            pager.setPagingEnabled(false);
+                        }
+
+                        boolean choiceBoolean = getStackChoice();
+                        float progress = getStackProgress();
+
+                        view.setTranslationX(X - mXStart);
+                        //view.setTranslationY(Y - mYStart);
+
+                        mXDelta = X - mXStart;
+                        mYDelta = Y - mYStart;
+
+                        mBeingDragged = view;
+                        requestLayout();
+
+                        if (mCardStackListener != null) {
+                            mCardStackListener.onUpdateProgress(choiceBoolean, progress, mBeingDragged);
+                        }
+
+                        break;
+
+                    case MotionEvent.ACTION_CANCEL:
+                        mBeingDragged = null;
                         mXDelta = 0;
                         mYDelta = 0;
                         mXStart = 0;
                         mYStart = 0;
-
-                        ObjectAnimator animation = ObjectAnimator.ofFloat(last, "translationX", sign*1000)
-                                .setDuration(300);
-                        animation.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-
-                                if (mCardStackListener != null){
-                                    boolean choice = finalChoice;
-                                    mCardStackListener.onChoiceMade(choice, last);
-                                }
-
-                                recycleView(last);
-
-                                final ViewGroup parent = (ViewGroup) view.getParent();
-                                if (null != parent) {
-                                    parent.removeView(view);
-                                    parent.addView(view, 0);
-                                }
-
-                                last.setScaleX(1);
-                                last.setScaleY(1);
-                                setTranslationY(0);
-                                setTranslationX(0);
-                                requestLayout();
-
-                            }
-                        });
-                        animation.start();
-
-                        verticalMoreCount = 0;
-                        verticalLessCount = 0;
-                        mMovingVertically.clear();
-                    }
-
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-
-                    int mDraggedY = Math.abs(Y - mYStart);
-                    int mDraggedX = Math.abs(X - mXStart);
-
-                    //Log.d(TAG, "Moving vertically more: " + (mDraggedY > mDraggedX) );
-                    mMovingVertically.add((mDraggedY > mDraggedX));
-
-                    for ( Boolean mv : mMovingVertically ){
-                        if (mv)
-                           verticalMoreCount++;
-                        else
-                           verticalLessCount++;
-                    }
-
-                    // Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (mBeingDragged != null )+ "  " + verticalMoreCount + " " + verticalLessCount);
-                    if ( mBeingDragged != null && verticalMoreCount > verticalLessCount){
                         pager.setPagingEnabled(true);
-                        return true;
-                    } else {
-                        pager.setPagingEnabled(false);
-                    }
-
-                    boolean choiceBoolean = getStackChoice();
-                    float progress = getStackProgress();
-
-                    view.setTranslationX(X - mXStart);
-                    //view.setTranslationY(Y - mYStart);
-
-                    mXDelta = X - mXStart;
-                    mYDelta = Y - mYStart;
-
-                    mBeingDragged = view;
-                    requestLayout();
-
-                    if (mCardStackListener != null){
-                        mCardStackListener.onUpdateProgress(choiceBoolean, progress, mBeingDragged);
-                    }
-
-                    break;
-
-                case MotionEvent.ACTION_CANCEL:
-                    Log.d(TAG, "MotionEvent.ACTION_CANCEL");
-                    mBeingDragged= null;
-                    mXDelta = 0;
-                    mYDelta = 0;
-                    mXStart = 0;
-                    mYStart = 0;
-                    pager.setPagingEnabled(true);
-                    break;
+                        break;
+                }
+                return true;
             }
-            return true;
         }
 
     }
@@ -649,9 +659,9 @@ public class CardStackView extends RelativeLayout {
 
                     // setTranslationY was causing the weird angle overflow view
                     //if (position < 0) {
-                        //view.setTranslationY(vertMargin - horzMargin / 2);
+                    //view.setTranslationY(vertMargin - horzMargin / 2);
                     //} else {
-                        //view.setTranslationY(-vertMargin + horzMargin / 2);
+                    //view.setTranslationY(-vertMargin + horzMargin / 2);
                     //}
 
                     // Scale the page down (between MIN_SCALE and 1)
@@ -674,5 +684,13 @@ public class CardStackView extends RelativeLayout {
         titleIndicator.setOrientation(LinearLayout.VERTICAL);
         titleIndicator.setViewPager(verticalViewPager);
 
+    }
+
+    private static class SingleTapUp extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent event) {
+            return true;
+        }
     }
 }
