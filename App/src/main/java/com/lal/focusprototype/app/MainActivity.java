@@ -8,8 +8,10 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 
@@ -64,10 +66,28 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onCancelled(View beingDragged) {
+
                 FeedItemView item = (FeedItemView)beingDragged;
                 if (item != null)
                     item.onCancelled(beingDragged);
 
+                long downTime = SystemClock.uptimeMillis();
+                long eventTime = SystemClock.uptimeMillis() + 100;
+                float x = 0.0f;
+                float y = 0.0f;
+                int metaState = 0;
+                MotionEvent motionEvent = MotionEvent.obtain(
+                        downTime,
+                        eventTime,
+                        MotionEvent.ACTION_CANCEL,
+                        x,
+                        y,
+                        metaState
+                );
+
+// Dispatch touch event to view
+                if (beingDragged!=null)
+                    beingDragged.dispatchTouchEvent(motionEvent);
                 Log.d(TAG, "onCancelled, maybe I can use this to add view pager");
             }
 

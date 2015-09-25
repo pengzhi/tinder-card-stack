@@ -1686,6 +1686,7 @@ public class VerticalViewPager extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+Log.d(TAG, "onInterceptTouchEvent");
         /*
          * This method JUST determines whether we want to intercept the motion.
          * If we return true, onMotionEvent will be called and we do the actual
@@ -1830,7 +1831,7 @@ public class VerticalViewPager extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-Log.d(TAG, "isPagingEnabled: " + isPagingEnabled );
+Log.d(TAG, "onTouchEvent isPagingEnabled: " + isPagingEnabled );
         if (!this.isPagingEnabled)
             return false;
 

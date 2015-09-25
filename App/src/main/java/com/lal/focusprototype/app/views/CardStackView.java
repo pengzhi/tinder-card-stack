@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -319,8 +320,6 @@ public class CardStackView extends RelativeLayout {
         public boolean onTouch(final View view, MotionEvent event) {
 
             VerticalViewPager pager = (VerticalViewPager) view.findViewById( R.id.verticalviewpager );
-            //pager.setPagingEnabled( mBeingDragged == null );
-
 
             if (!isTopCard(view)){
                 return false;
@@ -328,8 +327,8 @@ public class CardStackView extends RelativeLayout {
 
             final int X = (int) event.getRawX();
             final int Y = (int) event.getRawY();
-
             final int action = event.getAction();
+
             switch (action & MotionEvent.ACTION_MASK) {
 
                 case MotionEvent.ACTION_DOWN: {
@@ -392,7 +391,8 @@ public class CardStackView extends RelativeLayout {
 
                         set.start();
 
-                    }else{
+                    } else {
+
                         final View last = mCards.poll();
 
                         View recycled = getRecycledOrNew();
@@ -432,7 +432,6 @@ public class CardStackView extends RelativeLayout {
                                     parent.addView(view, 0);
                                 }
 
-
                                 last.setScaleX(1);
                                 last.setScaleY(1);
                                 setTranslationY(0);
@@ -449,6 +448,7 @@ public class CardStackView extends RelativeLayout {
                     }
 
                     break;
+
                 case MotionEvent.ACTION_MOVE:
 
                     int mDraggedY = Math.abs(Y - mYStart);
@@ -458,20 +458,17 @@ public class CardStackView extends RelativeLayout {
                     mMovingVertically.add((mDraggedY > mDraggedX));
 
                     for ( Boolean mv : mMovingVertically ){
-                       if (mv)
+                        if (mv)
                            verticalMoreCount++;
                         else
                            verticalLessCount++;
                     }
-// Log.d(TAG, "mBeingDragged != null && verticalMoreCount > verticalLessCount): " + mBeingDragged + "  " + verticalMoreCount + " " + verticalLessCount);
+
+                    // Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (mBeingDragged != null )+ "  " + verticalMoreCount + " " + verticalLessCount);
                     if ( mBeingDragged != null && verticalMoreCount > verticalLessCount){
-
-// Log.d(TAG, "mBeingDragged != null && verticalMoreCount > verticalLessCount)");
                         pager.setPagingEnabled(true);
-                        // mBeingDragged = null;
-                        return false;
+                        return true;
                     } else {
-
                         pager.setPagingEnabled(false);
                     }
 
@@ -493,6 +490,15 @@ public class CardStackView extends RelativeLayout {
 
                     break;
 
+                case MotionEvent.ACTION_CANCEL:
+                    Log.d(TAG, "MotionEvent.ACTION_CANCEL");
+                    mBeingDragged= null;
+                    mXDelta = 0;
+                    mYDelta = 0;
+                    mXStart = 0;
+                    mYStart = 0;
+                    pager.setPagingEnabled(true);
+                    break;
             }
             return true;
         }
@@ -618,7 +624,7 @@ public class CardStackView extends RelativeLayout {
 
         VerticalViewPager verticalViewPager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
 
-        verticalViewPager.setOffscreenPageLimit(5); // very important to set this, otherwise fragment will show the first time and disappear later
+        verticalViewPager.setOffscreenPageLimit(15); // very important to set this, otherwise fragment will show the first time and disappear later
         verticalViewPager.setAdapter(new DummyAdapter(((FragmentActivity) getContext()).getSupportFragmentManager()));
         verticalViewPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.pagemargin));
         //verticalViewPager.setPageMarginDrawable(new ColorDrawable(getResources().getColor(android.R.color.holo_green_dark)));
@@ -666,7 +672,7 @@ public class CardStackView extends RelativeLayout {
 
         CirclePageIndicator titleIndicator = (CirclePageIndicator) view.findViewById(R.id.verticalviewpager_indicator);
         titleIndicator.setOrientation(LinearLayout.VERTICAL);
-        titleIndicator.setViewPager( verticalViewPager );
+        titleIndicator.setViewPager(verticalViewPager);
 
     }
 }
