@@ -54,13 +54,11 @@ public class CardStackView extends RelativeLayout {
     private static final float MIN_ALPHA = 0.75f;
 
     private static final String TAG = "CardStackView";
-    private boolean mMovingVerticallyMore;
     private ArrayList<Boolean> mMovingVertically = new ArrayList<>();
     int verticalMoreCount = 0;
     int verticalLessCount = 0;
-    // private VerticalViewPager verticalViewPager;
 
-    private Handler handler;
+    // this is to detect single tap
     private GestureDetector gestureDetector;
 
     public interface CardStackListener{
@@ -136,16 +134,22 @@ public class CardStackView extends RelativeLayout {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
 
-        View card = mCards.getFirst();
+        if ( !mCards.isEmpty() ) {
 
-        // this is how I pass the motion events to the listener registered on each card
-        mMyTouchListener.onTouch(card, ev);
+            View card = mCards.getFirst();
+            // this is how I pass the motion events to the listener registered on each card
+            mMyTouchListener.onTouch(card, ev);
+        }
 
         return super.onInterceptTouchEvent(ev);
     }
 
     private void initializeStack() {
+
+        mMyTouchListener = new MyOnTouchListener();
+
         int position = 0;
+
         for (; position < mCurrentPosition + STACK_SIZE;
              position++) {
 
@@ -163,8 +167,8 @@ public class CardStackView extends RelativeLayout {
             params.addRule(RelativeLayout.CENTER_IN_PARENT);
             addView(card, 0, params);
 
-            mMyTouchListener = new MyOnTouchListener();
 
+Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition: " + mCurrentPosition);
             initiateViewPager(card);
         }
 
@@ -273,7 +277,6 @@ public class CardStackView extends RelativeLayout {
         mCardStackListener = cardStackListener;
     }
 
-
     private static class MockListAdapter extends BaseAdapter {
 
         List<String> mItems;
@@ -329,10 +332,12 @@ public class CardStackView extends RelativeLayout {
             }
 
             if (gestureDetector.onTouchEvent(event)) {
+
                 // single tap
                 Log.d(TAG, "single tap");
                 Toast.makeText(getContext(),"single tap detected", Toast.LENGTH_SHORT).show();
-                return true;
+                return false;
+
             } else {
 
                 final int X = (int) event.getRawX();
@@ -362,7 +367,7 @@ public class CardStackView extends RelativeLayout {
                             ObjectAnimator yTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationY", 0);
                             ObjectAnimator xTranslation = ObjectAnimator.ofFloat(mBeingDragged, "translationX", 0);
                             set.playTogether(
-                                    xTranslation
+                                xTranslation
                             );
 
                             set.setDuration(100).start();
@@ -412,6 +417,8 @@ public class CardStackView extends RelativeLayout {
 
                                 mCards.offer(recycled);
                                 addView(recycled, 0, params);
+
+                                initiateViewPager(recycled);
                             }
 
                             int sign = mXDelta > 0 ? +1 : -1;
@@ -464,7 +471,6 @@ public class CardStackView extends RelativeLayout {
                         int mDraggedY = Math.abs(Y - mYStart);
                         int mDraggedX = Math.abs(X - mXStart);
 
-                        //Log.d(TAG, "Moving vertically more: " + (mDraggedY > mDraggedX) );
                         mMovingVertically.add((mDraggedY > mDraggedX));
 
                         for (Boolean mv : mMovingVertically) {
@@ -634,7 +640,7 @@ public class CardStackView extends RelativeLayout {
 
         VerticalViewPager verticalViewPager = (VerticalViewPager) view.findViewById(R.id.verticalviewpager);
 
-        verticalViewPager.setOffscreenPageLimit(15); // very important to set this, otherwise fragment will show the first time and disappear later
+        verticalViewPager.setOffscreenPageLimit(5); // very important to set this, otherwise fragment will show the first time and disappear later
         verticalViewPager.setAdapter(new DummyAdapter(((FragmentActivity) getContext()).getSupportFragmentManager()));
         verticalViewPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.pagemargin));
         //verticalViewPager.setPageMarginDrawable(new ColorDrawable(getResources().getColor(android.R.color.holo_green_dark)));
