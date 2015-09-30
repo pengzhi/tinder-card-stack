@@ -25,6 +25,15 @@
             android:layout_height="300dp"
             android:layout_centerInParent="true">
             </com.lal.focusprototype.app.views.CardStackView>
+
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Add"
+            android:id="@+id/card_add"
+            android:layout_below="@+id/mCardStack"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="31dp" />
     </RelativeLayout>
 
     <ImageView

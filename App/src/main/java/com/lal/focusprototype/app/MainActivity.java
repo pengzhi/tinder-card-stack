@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 
 import com.lal.focusprototype.app.views.CardStackView;
 import com.lal.focusprototype.app.views.FeedItemView;
@@ -22,13 +23,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 public class MainActivity extends FragmentActivity {
+
     private static final String TAG = "MainActivity";
+
     @InjectView(R.id.mCardStack)
     CardStackView mCardStack;
 
+    @InjectView(R.id.card_add)
+    Button mCardAdd;
+
     private Handler handler;
+    private FeedListAdapter feedListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,10 +108,19 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void doInitialize() {
-        mCardStack.setAdapter(new FeedListAdapter(this));
+        feedListAdapter = new FeedListAdapter(this);
+        mCardStack.setAdapter(feedListAdapter);
     }
 
+    @OnClick(R.id.card_add)
+    public void addCard() {
+        feedListAdapter.addItemToBottom();
+        mCardStack.updateStack2();
+    }
+
+
     public Rect locateView(View view) {
+
         Rect loc = new Rect();
         int[] location = new int[2];
         if (view == null) {

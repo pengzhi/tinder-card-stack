@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lal.focusprototype.app.CirclePageIndicator;
+import com.lal.focusprototype.app.FeedListAdapter;
 import com.lal.focusprototype.app.R;
 import com.lal.focusprototype.app.VerticalViewPager;
 import com.nineoldandroids.animation.Animator;
@@ -70,7 +71,7 @@ public class CardStackView extends RelativeLayout {
         void onChoiceMade(boolean choice, View beingDragged);
     }
 
-    private static int STACK_SIZE = 4;
+    private static int STACK_SIZE = 3;
     private static int MAX_ANGLE_DEGREE = -20;//20
     private BaseAdapter mAdapter;
     private int mCurrentPosition;
@@ -145,14 +146,13 @@ public class CardStackView extends RelativeLayout {
         return super.onInterceptTouchEvent(ev);
     }
 
-    private void initializeStack() {
+    public void initializeStack() {
 
         mMyTouchListener = new MyOnTouchListener(this);
 
         int position = 0;
 
-        for (; position < mCurrentPosition + STACK_SIZE;
-             position++) {
+        for (; position < mCurrentPosition + STACK_SIZE; position++) {
 
             if (position >= mAdapter.getCount()) {
                 break;
@@ -160,7 +160,7 @@ public class CardStackView extends RelativeLayout {
 
             Object item = mAdapter.getItem(position);
             mCardStack.offer(item);
-            View card = mAdapter.getView(position, null, null);
+            FeedItemView card = (FeedItemView)mAdapter.getView(position, null, null);
 
             mCards.offer(card);
 
@@ -169,25 +169,80 @@ public class CardStackView extends RelativeLayout {
             addView(card, 0, params);
 
 
-Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition: " + mCurrentPosition);
+            // Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition: " + mCurrentPosition);
             initiateViewPager(card);
+Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem().toString() + " getChildCount: " + getChildCount());
         }
 
         mCurrentPosition += position;
+        Log.d(TAG, "initializeStack() mCurrentPosition: " + mCurrentPosition);
+    }
+
+    public void updateStack(){
+        // only update view if visible cards are less than STACK_SIZE
+Log.d(TAG, "mCardStack: " + mCardStack.size() + " mCards: " + mCards.size() + " mCurrentPosition: " + mCurrentPosition + " adapter.size(): " + mAdapter.getCount());
+
+        if (mCards.size() < STACK_SIZE - 1){
+
+            View last = mCards.poll();
+
+            View recycled = getRecycledOrNew();
+            if (recycled != null) {
+Log.d(TAG, "recycled != null");
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+                params.addRule(RelativeLayout.CENTER_IN_PARENT);
+
+                mCards.offer(recycled);
+                addView(recycled, 0, params);
+                initiateViewPager(recycled);
+            }
+
+            recycleView(last);
+
+            // TODO: 02/Oct/2015 Figure out what is view
+            View view = mCards.getFirst();
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+            params.addRule(RelativeLayout.CENTER_IN_PARENT);
+            removeView(view);
+            addView(view, 0, params);
+            Log.d(TAG, "getChildCount : " + getChildCount());
+
+        }
+    }
+
+    public void updateStack2(){
+
+        Object item = mAdapter.getItem( mCurrentPosition );
+        mCardStack.offer(item);
+        FeedItemView card = (FeedItemView)mAdapter.getView( mCurrentPosition, null, null );
+
+        mCards.offer(card);
+
+        //RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        //params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        //addView(card, 0, params);
+
+        initiateViewPager(card);
+        Log.d(TAG, "updateStack2 mCards.size(): " + mCards.size() + " mCurrentPosition: " + mCurrentPosition);
+
+        requestLayout();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (mBeingDragged != null){
+
+        if (mBeingDragged != null) {
+
             mXDelta = (int) mBeingDragged.getTranslationX();
             mYDelta = (int) mBeingDragged.getTranslationY();
-
         }
 
         int index = 0;
         Iterator<View> it = mCards.descendingIterator();
+
         while (it.hasNext()) {
-            View card =  it.next();
+            FeedItemView card = (FeedItemView) it.next();
             if (card == null) {
                 break;
             }
@@ -197,17 +252,17 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
             }else{
                 card.setOnTouchListener(null);
             }
-
-            if (index == 0 && adapterHasMoreItems()) {
-                if (mBeingDragged != null){
-                    index++;
-                    continue;
-                }
-                scaleAndTranslate(1, card);
-            } else {
+Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
+        " " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
+            //if (index == 0 && adapterHasMoreItems()) {
+            //    if (mBeingDragged != null){
+            //        index++;
+            //        continue;
+            //    }
+            //    scaleAndTranslate(1, card);
+            //} else {
                 scaleAndTranslate(index, card);
-            }
-
+            //}
             index++;
         }
 
@@ -215,7 +270,7 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
     }
 
     private boolean adapterHasMoreItems() {
-        return mCurrentPosition < mAdapter.getCount();
+        return mCurrentPosition <= mAdapter.getCount();
     }
 
     private boolean isTopCard(View card) {
@@ -227,6 +282,7 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
     }
 
     private void scaleAndTranslate(int cardIndex, View view) {
+
         LinearInterpolator interpolator = new LinearInterpolator();
 
         if (view == mBeingDragged){
@@ -420,7 +476,7 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
                             set.start();
 
                         } else {
-
+Log.d(TAG, "canAcceptChoice()");
                             final View last = cardStackView.mCards.poll();
 
                             View recycled = cardStackView.getRecycledOrNew();
@@ -430,7 +486,6 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
 
                                 cardStackView.mCards.offer(recycled);
                                 cardStackView.addView(recycled, 0, params);
-
                                 cardStackView.initiateViewPager(recycled);
                             }
 
@@ -457,7 +512,9 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
                                     cardStackView.recycleView(last);
 
                                     final ViewGroup parent = (ViewGroup) view.getParent();
+
                                     if (null != parent) {
+
                                         parent.removeView(view);
                                         parent.addView(view, 0);
                                     }
@@ -468,6 +525,7 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
                                     cardStackView.setTranslationX(0);
                                     cardStackView.requestLayout();
 
+                                    // ((FeedListAdapter) cardStackView.mAdapter).removeItemFromTop();
                                 }
                             });
                             animation.start();
@@ -537,10 +595,11 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
     private void recycleView(View last) {
         ((ViewGroup)last.getParent()).removeView(last);
         mRecycledCards.offer(last);
+
     }
 
     private View getRecycledOrNew() {
-        if (adapterHasMoreItems()){
+        if ( adapterHasMoreItems() && mCurrentPosition < mAdapter.getCount() ){
             View view = mRecycledCards.poll();
             view = mAdapter.getView(mCurrentPosition++, view, null);
 
@@ -604,10 +663,12 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
          * number.
          */
         public static PlaceholderFragment newInstance(int sectionNumber) {
+
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
+
             return fragment;
         }
 
@@ -617,6 +678,10 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
             View rootView = inflater.inflate(R.layout.fragment_layout, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.textview);
             textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+
+            View rv = inflater.inflate(R.layout.fragment_layout, container, false);
+            TextView tv = (TextView) rv.findViewById(R.id.textview);
+
             return rootView;
         }
 
@@ -691,6 +756,7 @@ Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition:
                 } else { // (1,+Infinity]
                     // This page is way off-screen to the right.
                     //view.setAlpha(0);
+
                 }
             }
         });
