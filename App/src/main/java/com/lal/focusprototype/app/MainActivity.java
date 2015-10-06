@@ -114,8 +114,12 @@ public class MainActivity extends FragmentActivity {
 
     @OnClick(R.id.card_add)
     public void addCard() {
+
+        // this part works when STACK_SIZE is visible
         feedListAdapter.addItemToBottom();
-        mCardStack.updateStack2();
+        // TODO: need to work on the part where visible item(s)
+        // are less than STACK_SIZE
+        mCardStack.updateStack();
     }
 
 

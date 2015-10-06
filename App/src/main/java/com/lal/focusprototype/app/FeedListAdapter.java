@@ -27,15 +27,12 @@ public class FeedListAdapter extends BaseAdapter {
     }
 
     void initAdapter() {
-        mItems = new ArrayList<FeedItem>();
 
-        // there is a weird behaviour when i<=5, after first swipe, the stack shows 4 cards instead
-        // of 3
+        mItems = new ArrayList<FeedItem>();
         for(int i=1; i<= 10; i++){ //15
             // int index = i % 5 != 0 ? i % 5 : 1;
             mItems.add(new FeedItem(i%5, i));
         }
-        Log.d(TAG, "initAdapter() mItems: " + mItems.size());
     }
 
     @Override
@@ -70,7 +67,7 @@ public class FeedListAdapter extends BaseAdapter {
 
     public void addItemToBottom(){
 
-        mItems.add(new FeedItem(mItems.size()%5,mItems.size()));
+        mItems.add(new FeedItem(mItems.size()%5,mItems.size()+1));
         notifyDataSetChanged();
     }
 

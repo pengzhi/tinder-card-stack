@@ -175,58 +175,27 @@ Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem
         }
 
         mCurrentPosition += position;
-        Log.d(TAG, "initializeStack() mCurrentPosition: " + mCurrentPosition);
     }
 
     public void updateStack(){
-        // only update view if visible cards are less than STACK_SIZE
-Log.d(TAG, "mCardStack: " + mCardStack.size() + " mCards: " + mCards.size() + " mCurrentPosition: " + mCurrentPosition + " adapter.size(): " + mAdapter.getCount());
 
-        if (mCards.size() < STACK_SIZE - 1){
+        if (mCards.size() < STACK_SIZE) {
 
-            View last = mCards.poll();
+            Object item = mAdapter.getItem(mCurrentPosition);
+            mCardStack.offer(item);
+            FeedItemView card = (FeedItemView) mAdapter.getView(mCurrentPosition, null, null);
 
-            View recycled = getRecycledOrNew();
-            if (recycled != null) {
-Log.d(TAG, "recycled != null");
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                params.addRule(RelativeLayout.CENTER_IN_PARENT);
-
-                mCards.offer(recycled);
-                addView(recycled, 0, params);
-                initiateViewPager(recycled);
-            }
-
-            recycleView(last);
-
-            // TODO: 02/Oct/2015 Figure out what is view
-            View view = mCards.getFirst();
+            mCards.offer(card);
 
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
             params.addRule(RelativeLayout.CENTER_IN_PARENT);
-            removeView(view);
-            addView(view, 0, params);
-            Log.d(TAG, "getChildCount : " + getChildCount());
+            addView(card, 0, params);
 
+            initiateViewPager(card);
+            //Log.d(TAG, "updateStack2 mCards.size(): " + mCards.size() + " mCurrentPosition: " + mCurrentPosition);
+
+            requestLayout();
         }
-    }
-
-    public void updateStack2(){
-
-        Object item = mAdapter.getItem( mCurrentPosition );
-        mCardStack.offer(item);
-        FeedItemView card = (FeedItemView)mAdapter.getView( mCurrentPosition, null, null );
-
-        mCards.offer(card);
-
-        //RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        //params.addRule(RelativeLayout.CENTER_IN_PARENT);
-        //addView(card, 0, params);
-
-        initiateViewPager(card);
-        Log.d(TAG, "updateStack2 mCards.size(): " + mCards.size() + " mCurrentPosition: " + mCurrentPosition);
-
-        requestLayout();
     }
 
     @Override
@@ -252,8 +221,8 @@ Log.d(TAG, "recycled != null");
             }else{
                 card.setOnTouchListener(null);
             }
-Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
-        " " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
+            Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
+            " " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
             //if (index == 0 && adapterHasMoreItems()) {
             //    if (mBeingDragged != null){
             //        index++;
