@@ -140,6 +140,7 @@ public class CardStackView extends RelativeLayout {
 
             View card = mCards.getFirst();
             // this is how I pass the motion events to the listener registered on each card
+            Log.d(TAG, "touching...");
             mMyTouchListener.onTouch(card, ev);
         }
 
@@ -171,7 +172,7 @@ public class CardStackView extends RelativeLayout {
 
             // Log.d(TAG, "initiateViewPager(card) position: " + position + " mCurrentPosition: " + mCurrentPosition);
             initiateViewPager(card);
-Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem().toString() + " getChildCount: " + getChildCount());
+            Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem().toString() + " getChildCount: " + getChildCount());
         }
 
         mCurrentPosition += position;
@@ -221,8 +222,8 @@ Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem
             }else{
                 card.setOnTouchListener(null);
             }
-            Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
-            " " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
+            //Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
+            //" " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
             //if (index == 0 && adapterHasMoreItems()) {
             //    if (mBeingDragged != null){
             //        index++;
@@ -393,6 +394,8 @@ Log.d(TAG, "initializeStack() position: " +position+ " card. " +card.getFeedItem
                     }
                     case MotionEvent.ACTION_UP:
 
+                        pager.setPagingEnabled(true);
+
                         if (cardStackView.mBeingDragged == null) {
                             return false;
                         }
@@ -520,7 +523,7 @@ Log.d(TAG, "canAcceptChoice()");
                                 cardStackView.verticalLessCount++;
                         }
 
-                        // Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (mBeingDragged != null )+ "  " + verticalMoreCount + " " + verticalLessCount);
+                        Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (cardStackView.mBeingDragged != null )+ "  " + cardStackView.verticalMoreCount + " " + cardStackView.verticalLessCount);
                         if (cardStackView.mBeingDragged != null && cardStackView.verticalMoreCount > cardStackView.verticalLessCount) {
                             pager.setPagingEnabled(true);
                             return true;

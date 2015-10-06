@@ -1831,7 +1831,6 @@ public class VerticalViewPager extends ViewGroup {
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
 
-        // Log.d(TAG, "onTouchEvent isPagingEnabled: " + isPagingEnabled );
         if (!this.isPagingEnabled)
             return false;
 
