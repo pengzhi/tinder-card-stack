@@ -140,7 +140,6 @@ public class CardStackView extends RelativeLayout {
 
             View card = mCards.getFirst();
             // this is how I pass the motion events to the listener registered on each card
-            Log.d(TAG, "touching...");
             mMyTouchListener.onTouch(card, ev);
         }
 
@@ -373,7 +372,6 @@ public class CardStackView extends RelativeLayout {
             if (cardStackView.gestureDetector.onTouchEvent(event)) {
 
                 // single tap
-                Log.d(TAG, "single tap");
                 Toast.makeText(cardStackView.getContext(),"single tap detected", Toast.LENGTH_SHORT).show();
                 return false;
 
@@ -523,7 +521,6 @@ Log.d(TAG, "canAcceptChoice()");
                                 cardStackView.verticalLessCount++;
                         }
 
-                        Log.d(TAG, "dragged != null && vMoreCount > vLessCount): " + (cardStackView.mBeingDragged != null )+ "  " + cardStackView.verticalMoreCount + " " + cardStackView.verticalLessCount);
                         if (cardStackView.mBeingDragged != null && cardStackView.verticalMoreCount > cardStackView.verticalLessCount) {
                             pager.setPagingEnabled(true);
                             return true;
