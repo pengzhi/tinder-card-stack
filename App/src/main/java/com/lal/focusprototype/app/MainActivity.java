@@ -117,8 +117,10 @@ public class MainActivity extends FragmentActivity {
 
         // this part works when STACK_SIZE is visible
         feedListAdapter.addItemToBottom();
-        // TODO: need to work on the part where visible item(s)
-        // are less than STACK_SIZE
+
+        // This part is to handle the scenario when visible item(s)
+        // are less than STACK_SIZE.
+        // It will not affect feedListAdapter.addItemToBottom();
         mCardStack.updateStack();
     }
 

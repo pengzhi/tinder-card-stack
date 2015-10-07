@@ -211,6 +211,7 @@ public class CardStackView extends RelativeLayout {
         Iterator<View> it = mCards.descendingIterator();
 
         while (it.hasNext()) {
+
             FeedItemView card = (FeedItemView) it.next();
             if (card == null) {
                 break;
@@ -221,6 +222,7 @@ public class CardStackView extends RelativeLayout {
             }else{
                 card.setOnTouchListener(null);
             }
+
             //Log.d(TAG, "onMeasure index mCurrentPosition < mAdapter.getCount(): " + index +
             //" " + mCurrentPosition + " " +  mAdapter.getCount() + " " + card.getFeedItem().toString() );
             //if (index == 0 && adapterHasMoreItems()) {
@@ -230,7 +232,7 @@ public class CardStackView extends RelativeLayout {
             //    }
             //    scaleAndTranslate(1, card);
             //} else {
-                scaleAndTranslate(index, card);
+            scaleAndTranslate(index, card);
             //}
             index++;
         }
