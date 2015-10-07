@@ -3,7 +3,6 @@ package com.lal.focusprototype.app.views;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -26,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lal.focusprototype.app.CirclePageIndicator;
-import com.lal.focusprototype.app.FeedListAdapter;
 import com.lal.focusprototype.app.R;
 import com.lal.focusprototype.app.VerticalViewPager;
 import com.nineoldandroids.animation.Animator;
@@ -64,6 +62,7 @@ public class CardStackView extends RelativeLayout {
     private GestureDetector gestureDetector;
 
     public interface CardStackListener{
+
         void onUpdateProgress(boolean positif, float percent, View view);
 
         void onCancelled(View beingDragged);
@@ -160,7 +159,7 @@ public class CardStackView extends RelativeLayout {
 
             Object item = mAdapter.getItem(position);
             mCardStack.offer(item);
-            FeedItemView card = (FeedItemView)mAdapter.getView(position, null, null);
+            CardView card = (CardView)mAdapter.getView(position, null, null);
 
             mCards.offer(card);
 
@@ -183,7 +182,7 @@ public class CardStackView extends RelativeLayout {
 
             Object item = mAdapter.getItem(mCurrentPosition);
             mCardStack.offer(item);
-            FeedItemView card = (FeedItemView) mAdapter.getView(mCurrentPosition, null, null);
+            CardView card = (CardView) mAdapter.getView(mCurrentPosition, null, null);
 
             mCards.offer(card);
 
@@ -212,7 +211,7 @@ public class CardStackView extends RelativeLayout {
 
         while (it.hasNext()) {
 
-            FeedItemView card = (FeedItemView) it.next();
+            CardView card = (CardView) it.next();
             if (card == null) {
                 break;
             }
@@ -497,7 +496,7 @@ Log.d(TAG, "canAcceptChoice()");
                                     cardStackView.setTranslationX(0);
                                     cardStackView.requestLayout();
 
-                                    // ((FeedListAdapter) cardStackView.mAdapter).removeItemFromTop();
+                                    // ((CardStackAdapter) cardStackView.mAdapter).removeItemFromTop();
                                 }
                             });
                             animation.start();
@@ -744,5 +743,6 @@ Log.d(TAG, "canAcceptChoice()");
         public boolean onSingleTapUp(MotionEvent event) {
             return true;
         }
+
     }
 }

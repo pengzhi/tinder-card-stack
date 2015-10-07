@@ -1,12 +1,11 @@
 package com.lal.focusprototype.app;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.lal.focusprototype.app.views.FeedItemView;
+import com.lal.focusprototype.app.views.CardView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,24 +13,24 @@ import java.util.List;
 /**
  * Created by diallo on 21/03/14.
  */
-public class FeedListAdapter extends BaseAdapter {
+public class CardStackAdapter extends BaseAdapter {
 
-    private static final String TAG = "FeedListAdapter";
-    List<FeedItem> mItems;
+    private static final String TAG = "CardStackAdapter";
+    List<CardViewItem> mItems;
 
     Context context;
 
-    public FeedListAdapter(Context context) {
+    public CardStackAdapter(Context context) {
         this.context = context;
         initAdapter();
     }
 
     void initAdapter() {
 
-        mItems = new ArrayList<FeedItem>();
+        mItems = new ArrayList<CardViewItem>();
         for(int i=1; i<= 10; i++){ //15
             // int index = i % 5 != 0 ? i % 5 : 1;
-            mItems.add(new FeedItem(i%5, i));
+            mItems.add(new CardViewItem(i%5, i));
         }
     }
 
@@ -41,7 +40,7 @@ public class FeedListAdapter extends BaseAdapter {
     }
 
     @Override
-    public FeedItem getItem(int position) {
+    public CardViewItem getItem(int position) {
         return mItems.get(position);
     }
 
@@ -53,11 +52,11 @@ public class FeedListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        FeedItemView personItemView;
+        CardView personItemView;
         if (convertView == null) {
-            personItemView = new FeedItemView(context);
+            personItemView = new CardView(context);
         } else {
-            personItemView = (FeedItemView) convertView;
+            personItemView = (CardView) convertView;
         }
 
         personItemView.bind(getItem(position));
@@ -67,7 +66,7 @@ public class FeedListAdapter extends BaseAdapter {
 
     public void addItemToBottom(){
 
-        mItems.add(new FeedItem(mItems.size()%5,mItems.size()+1));
+        mItems.add(new CardViewItem(mItems.size()%5,mItems.size()+1));
         notifyDataSetChanged();
     }
 

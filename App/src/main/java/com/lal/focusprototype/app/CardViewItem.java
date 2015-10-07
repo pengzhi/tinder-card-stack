@@ -3,11 +3,11 @@ package com.lal.focusprototype.app;
 /**
  * Created by diallo on 21/03/14.
  */
-public class FeedItem {
+public class CardViewItem {
     private int mId;
     private int mIndex;
 
-    public FeedItem(int i, int index) {
+    public CardViewItem(int i, int index) {
         this.mId = i;
         this.mIndex = index;
     }

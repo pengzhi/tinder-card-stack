@@ -8,13 +8,13 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.lal.focusprototype.app.FeedItem;
+import com.lal.focusprototype.app.CardViewItem;
 import com.lal.focusprototype.app.R;
 
 /**
  * Created by diallo on 21/03/14.
  */
-public class FeedItemView extends RelativeLayout implements CardStackView.CardStackListener {
+public class CardView extends RelativeLayout implements CardStackView.CardStackListener {
 
     ImageView picture;
 
@@ -24,9 +24,9 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
 
     TextView no;
 
-    private FeedItem mFeedItem;
+    private CardViewItem mCardViewItem;
 
-    public FeedItemView(Context context) {
+    public CardView(Context context) {
         super(context);
         LayoutInflater.from(context).inflate(R.layout.feed_item, this, true);
         picture = (ImageView) findViewById(R.id.picture);
@@ -42,8 +42,8 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
 
     }
 
-    public void bind(FeedItem item) {
-        mFeedItem = item;
+    public void bind(CardViewItem item) {
+        mCardViewItem = item;
 
         return;
     }
@@ -52,20 +52,20 @@ public class FeedItemView extends RelativeLayout implements CardStackView.CardSt
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        if (mFeedItem != null) {
+        if (mCardViewItem != null) {
             int resource = getResources().getIdentifier(
-                    "content_card_x_0" + mFeedItem.getId(),
+                    "content_card_x_0" + mCardViewItem.getId(),
                     "drawable", getContext().getPackageName());
 
             // loadPicture(resource);
 
-            id.setText(mFeedItem.toString());
+            id.setText(mCardViewItem.toString());
         }
 
     }
 
-    public FeedItem getFeedItem() {
-        return mFeedItem;
+    public CardViewItem getFeedItem() {
+        return mCardViewItem;
     }
 
     void loadPicture(int id) {

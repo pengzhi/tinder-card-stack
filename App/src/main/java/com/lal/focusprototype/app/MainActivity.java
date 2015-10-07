@@ -3,23 +3,19 @@ package com.lal.focusprototype.app;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 
 import com.lal.focusprototype.app.views.CardStackView;
-import com.lal.focusprototype.app.views.FeedItemView;
-
-import org.apache.commons.lang3.StringUtils;
+import com.lal.focusprototype.app.views.CardView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -36,7 +32,7 @@ public class MainActivity extends FragmentActivity {
     Button mCardAdd;
 
     private Handler handler;
-    private FeedListAdapter feedListAdapter;
+    private CardStackAdapter cardStackAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,14 +64,14 @@ public class MainActivity extends FragmentActivity {
         mCardStack.setCardStackListener(new CardStackView.CardStackListener() {
             @Override
             public void onUpdateProgress(boolean choice, float percent, View view) {
-                FeedItemView item = (FeedItemView)view;
+                CardView item = (CardView)view;
                 item.onUpdateProgress(choice, percent, view);
             }
 
             @Override
             public void onCancelled(View beingDragged) {
 
-                FeedItemView item = (FeedItemView)beingDragged;
+                CardView item = (CardView)beingDragged;
                 if (item != null)
                     item.onCancelled(beingDragged);
 
@@ -99,7 +95,7 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onChoiceMade(boolean choice, View beingDragged) {
-                FeedItemView item = (FeedItemView)beingDragged;
+                CardView item = (CardView)beingDragged;
                 item.onChoiceMade(choice, beingDragged);
             }
         });
@@ -108,19 +104,19 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void doInitialize() {
-        feedListAdapter = new FeedListAdapter(this);
-        mCardStack.setAdapter(feedListAdapter);
+        cardStackAdapter = new CardStackAdapter(this);
+        mCardStack.setAdapter(cardStackAdapter);
     }
 
     @OnClick(R.id.card_add)
     public void addCard() {
 
         // this part works when STACK_SIZE is visible
-        feedListAdapter.addItemToBottom();
+        cardStackAdapter.addItemToBottom();
 
         // This part is to handle the scenario when visible item(s)
         // are less than STACK_SIZE.
-        // It will not affect feedListAdapter.addItemToBottom();
+        // It will not affect cardStackAdapter.addItemToBottom();
         mCardStack.updateStack();
     }
 
