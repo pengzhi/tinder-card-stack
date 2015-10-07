@@ -3,3 +3,6 @@ Card Stack View (forked from ecstasy2/tinder-card-stack)
 - Added the ability to add a card.
 - Removed some fancy animations when last card becomes visible.
 - Added circle indicator for ViewPager.
+
+TODO:
+- Should convert this to RecyclerView
