@@ -3,12 +3,12 @@ apply plugin: 'android'
 android {
     compileSdkVersion 21
     buildToolsVersion "22.0.1"
-
     defaultConfig {
         minSdkVersion 11
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
+        applicationId 'com.pengzhi.focusprototype'
     }
     buildTypes {
         release {
@@ -16,11 +16,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-
     sourceSets {
         main {
             java.srcDirs = ['GENERATED_FOLDER', 'src/main/java']
         }
+    }
+    productFlavors {
     }
 }
 

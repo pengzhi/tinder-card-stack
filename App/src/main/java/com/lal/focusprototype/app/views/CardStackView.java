@@ -649,8 +649,8 @@ Log.d(TAG, "canAcceptChoice()");
             TextView textView = (TextView) rootView.findViewById(R.id.textview);
             textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
 
-            View rv = inflater.inflate(R.layout.fragment_layout, container, false);
-            TextView tv = (TextView) rv.findViewById(R.id.textview);
+            // View rv = inflater.inflate(R.layout.fragment_layout, container, false);
+            // TextView tv = (TextView) rv.findViewById(R.id.textview);
 
             return rootView;
         }
